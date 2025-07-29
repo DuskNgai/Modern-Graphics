@@ -20,6 +20,13 @@
 | $L: \mathbb{R}^{3} \times \mathbb{S}^{2} \mapsto \mathbb{R}$ | Radiance at $\mathbf{x}$ in Direction $\boldsymbol{\omega}$ | $[W / (m^{2} \cdot sr)]$ |
 | $L_{e}: \mathbb{R}^{3} \times \mathbb{S}^{2} \mapsto \mathbb{R}$ | (Pseudo) Emission at $\mathbf{x}$ in Direction $\boldsymbol{\omega}$ | $[W / (m^{3} \cdot sr)]$ |
 
+这些是与表面相关的符号。
+
+| Symbol | Description | Unit |
+| :----: | :---------: | :--: |
+| $f_{r}: \mathbb{R}^{3} \times \mathbb{S}^{2} \times \mathbb{S}^{2} \mapsto \mathbb{R}$ | Bidirectional Reflectance Distribution Function (BRDF) | $[sr^{-1}]$ |
+| $V: \mathbb{R}^{3} \times \mathbb{R}^{3} \mapsto [0, 1]$ | Visibility Function Between Two Points | |
+
 这些是与体像相关的符号。
 
 | Symbol | Description | Unit |
@@ -29,6 +36,7 @@
 | $\sigma_{t}: \mathbb{R}^{3} \mapsto \mathbb{R}$ | Extinction Coefficient, $\sigma_{t} = \sigma_{a} + \sigma_{s}$ | $[m^{-1}]$ |
 | $\alpha: \mathbb{R}^{3} \mapsto \mathbb{R}$ | Single Scattering Albedo, $\alpha = \sigma_{s} / \sigma_{t}$ | |
 | $f_{p}: \mathbb{R}^{3} \times \mathbb{S}^{2} \times \mathbb{S}^{2} \mapsto \mathbb{R}$ | Phase Function | |
+| $T: \mathbb{R} \mapsto \mathbb{R}$ | Transmittance for One Ray | |
 
 这些是与数值计算相关的符号。
 
@@ -42,6 +50,10 @@
 ## Resources
 
 1. [Siggraph 2018 Course](https://cs.dartmouth.edu/~wjarosz/publications/novak18monte-sig.html)
+2. [Path Tracing in Production](https://jo.dreggn.org/path-tracing-in-production/2019/)
+3. [Physics Based Rendering](https://pbrt.org/)
+
+## [Path Tracing Theory]
 
 ## [Volume Rendering Theory](./Volume%20Rendering%20Theory.md)
 

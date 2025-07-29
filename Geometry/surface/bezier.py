@@ -14,15 +14,15 @@ class BezierTriangle(ParametricSurface):
         self.order = order
         self.control_point = control_point # [(n + 2) * (n + 1) // 2, d]
 
-        self.ijk = self.generate_ijk(self.order) # [(n + 2) * (n + 1) // 2, 3]
-        self.coefficient = self.generate_coefficient(self.order) # [n + 1, n + 1]
+        self.ijk = self.get_ijk(self.order) # [(n + 2) * (n + 1) // 2, 3]
+        self.coefficient = self.get_coefficient(self.order) # [n + 1, n + 1]
 
     def verify_shape_of_control_point(self, order: int, control_point: np.ndarray) -> None:
         assert control_point.shape[-2] == (order + 2) * (order + 1) // 2
 
     @classmethod
     @functools.cache(maxsize=16)
-    def generate_ijk(cls, n: int) -> np.ndarray:
+    def get_ijk(cls, n: int) -> np.ndarray:
         """
         i + j + k = n, 0 <= i, j, k <= n
 
@@ -36,7 +36,7 @@ class BezierTriangle(ParametricSurface):
         return np.array(ijk)
 
     @classmethod
-    def generate_coefficient(cls, n: int) -> np.ndarray:
+    def get_coefficient(cls, n: int) -> np.ndarray:
         """
         n! / (i! * j! * k!)
 
@@ -51,7 +51,7 @@ class BezierTriangle(ParametricSurface):
         return coefficient
 
     @classmethod
-    def generate_bernstein(cls, coefficient: np.ndarray, ijk: np.ndarray, uvw: np.ndarray) -> np.ndarray:
+    def get_bernstein(cls, coefficient: np.ndarray, ijk: np.ndarray, uvw: np.ndarray) -> np.ndarray:
         """
         n! / (i! * j! * k!) * (u ** i) * (v ** j) * (w ** k)
 
@@ -96,23 +96,23 @@ class BezierTriangle(ParametricSurface):
 
     @classmethod
     @functools.cache(maxsize=16)
-    def generate_regular_uvw(cls, n: int) -> np.ndarray:
+    def get_regular_uvw(cls, n: int) -> np.ndarray:
         """
         u + v + w = 1, 0 <= u, v, w <= 1
 
         Return:
             (`np.ndarray`): Shape [(n + 2) * (n + 1) // 2, 3].
         """
-        return cls.generate_ijk(n) / n
+        return cls.get_ijk(n) / n
 
-    def generate_regular_vertex(self, num_segments_per_edge: int) -> np.ndarray:
+    def get_regular_vertex(self, num_segments_per_edge: int) -> np.ndarray:
         """
         Return:
             (`np.ndarray`): Shape [(m + 2) * (m + 1) // 2, d]
         """
-        return self.evaluate(self.generate_regular_uvw(num_segments_per_edge))
+        return self.evaluate(self.get_regular_uvw(num_segments_per_edge))
 
-    def generate_regular_face(self, num_segments_per_edge: int) -> np.ndarray:
+    def get_regular_face(self, num_segments_per_edge: int) -> np.ndarray:
         """
         Return:
             (`np.ndarray`): Shape [num_segments_per_edge * num_segments_per_edge, 3]
@@ -126,12 +126,12 @@ class BezierTriangle(ParametricSurface):
             face.append([r - 1, r + i, r + i + 1])
         return np.array(face) # [num_segments_per_edge * num_segments_per_edge, 3]
 
-    def generate_regular_normal(self, num_segments_per_edge: int) -> np.ndarray:
+    def get_regular_normal(self, num_segments_per_edge: int) -> np.ndarray:
         """
         Return:
             (`np.ndarray`): Shape [(m + 2) * (m + 1) // 2, d]
         """
-        return self.evaluate_normal(self.generate_regular_uvw(num_segments_per_edge))
+        return self.evaluate_normal(self.get_regular_uvw(num_segments_per_edge))
 
     def evaluate(self, uvw: np.ndarray) -> np.ndarray:
         """
@@ -143,7 +143,7 @@ class BezierTriangle(ParametricSurface):
         Return:
             (`np.ndarray`): Shape [..., d]
         """
-        bernstein = self.generate_bernstein(self.coefficient, self.ijk, uvw) # [..., (n + 2) * (n + 1) // 2]
+        bernstein = self.get_bernstein(self.coefficient, self.ijk, uvw) # [..., (n + 2) * (n + 1) // 2]
         return bernstein @ self.control_point # [..., d]
 
     def evaluate_normal(self, uvw: np.ndarray) -> np.ndarray:

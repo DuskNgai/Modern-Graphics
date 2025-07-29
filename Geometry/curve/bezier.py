@@ -2,60 +2,39 @@ import numpy as np
 
 from curve import ParametricCurve
 
+
 class BezierCurve(ParametricCurve):
     def __init__(self,
         order: int,
         control_point: np.ndarray
     ) -> None:
-        self.verify_shape_of_control_point(order, control_point)
         self.order = order
-        self.control_point = control_point
+        self.control_point = control_point # [n + 1, d]
 
-    def verify_shape_of_control_point(self, order: int, control_point: np.ndarray) -> None:
-        assert control_point.shape[-2] == (order + 1)
-
-    @classmethod
-    def generate_regular_t(cls, n: int) -> np.ndarray:
-        """
-        0 <= t <= 1
-
-        Return:
-            (`np.ndarray`): Shape [n, 1]
-        """
-        return np.linspace(0.0, 1.0, n)[..., np.newaxis]
-
-    def generate_regular_vertex(self, num_segments: int) -> np.ndarray:
-        """
-        Return:
-            (`np.ndarray`): Shape [m, d]
-        """
-        t = self.generate_regular_t(num_segments)
+    def get_regular_vertex(self, num_segments: int) -> np.ndarray:
+        t = self.get_regular_t(num_segments)
         return self.evaluate(t)
 
-    def generate_regular_tangent(self, num_segments: int) -> np.ndarray:
-        """
-        Return:
-            (`np.ndarray`): Shape [m, d]
-        """
-        t = self.generate_regular_t(num_segments)
+    def get_regular_tangent(self, num_segments: int) -> np.ndarray:
+        t = self.get_regular_t(num_segments)
         return self.evaluate_tangent(t)
 
-    def generate_regular_acceleration(self, num_segments: int) -> np.ndarray:
-        t = self.generate_regular_t(num_segments)
+    def get_regular_acceleration(self, num_segments: int) -> np.ndarray:
+        t = self.get_regular_t(num_segments)
         return self.evaluate_acceleration(t)
 
-    def generate_regular_curvature(self, num_segments: int) -> np.ndarray:
-        t = self.generate_regular_t(num_segments)
+    def get_regular_curvature(self, num_segments: int) -> np.ndarray:
+        t = self.get_regular_t(num_segments)
         tangent = self.evaluate_tangent(t)
         acceleration = self.evaluate_acceleration(t)
-        return acceleration / (1 + tangent ** 2) ** (3 / 2)
+        return acceleration / np.sqrt((1 + tangent ** 2) ** 3)
 
     def evaluate(self, t: np.ndarray) -> np.ndarray:
         """
-        (1 - t) * P[0:n - 1](t) + t * P[1:n](t)
+        Evaluate Bezier curve at parameter t using the Bernstein basis matrix form.
 
         Args:
-            t (`np.ndarray`): Shape [..., 1]
+            t (`np.ndarray`): Shape [..., 1] or [...], values in [0, 1]
 
         Return:
             (`np.ndarray`): Shape [..., d]
@@ -86,14 +65,14 @@ class BezierCurve(ParametricCurve):
         """
         return self.order * (self.order - 1) * (self.evaluate_recursive(t, 2, self.order) - 2 * self.evaluate_recursive(t, 1, self.order - 1) + self.evaluate_recursive(t, 0, self.order - 2))
 
-    def evaluate_recursive(self, t: np.ndarray, start: int, end: int) -> np.ndarray:
+    def evaluate_recursive(self, t: np.ndarray, start_index: int, end_index: int) -> np.ndarray:
         """
         (1 - t) * P[s: e - 1] + t * P[s + 1: e]
         """
-        if start == end:
-            return self.control_point[start]
+        if start_index == end_index:
+            return self.control_point[start_index]
         else:
-            return (1 - t) * self.evaluate_recursive(t, start, end - 1) + t * self.evaluate_recursive(t, start + 1, end)
+            return (1 - t) * self.evaluate_recursive(t, start_index, end_index - 1) + t * self.evaluate_recursive(t, start_index + 1, end_index)
 
     def split(self, t: float) -> tuple["BezierCurve", "BezierCurve"]:
         control_point_left = np.array([
