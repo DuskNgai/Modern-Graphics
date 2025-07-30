@@ -164,7 +164,7 @@ def closed_form_tracking(x: vec3, w: vec3, d: float) -> float:
             return Le(x, w)
         else:
             w = phase_fn.sample()
-            d = 
+            d =
 ```
 
 <!-- TODO -->
@@ -209,4 +209,3 @@ $$
 ### Regular Tracking
 
 分段常数的场景可以分段采用解析解得到积分的结果。
-

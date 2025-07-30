@@ -6,8 +6,8 @@
 
 | Symbol | Description |
 | :----: | :---------: |
-| $n \in \mathbb{N}$ | Order of Bernstein Polynomial |
-| $B_{i}^{n}: \mathbb{R} \mapsto \mathbb{R}$ | Bernstein Polynomial |
+| $n \in \mathbb{N}$ | Degree of Bernstein Polynomial |
+| $B_{i}^{n}: \mathbb{R} \mapsto \mathbb{R}$ | $i$-th Bernstein Polynomial of degree $n$ |
 | $\mathbf{C}(t): [0, 1] \mapsto \mathbb{R}^{d}$ | Bézier Curve |
 | $\mathbf{P}_{i} \in \mathbb{R}^{d}$ | Control Point |
 

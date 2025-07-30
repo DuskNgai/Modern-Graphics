@@ -1,24 +1,23 @@
-import math
 import functools
+import math
 
 import numpy as np
 
-from surface import ParametricSurface
+from .surface import ParametricSurface
+
 
 class BezierTriangle(ParametricSurface):
-    def __init__(self,
-        order: int,
-        control_point: np.ndarray
-    ) -> None:
-        self.verify_shape_of_control_point(order, control_point)
-        self.order = order
+
+    def __init__(self, degree: int, control_point: np.ndarray) -> None:
+        self.verify_shape_of_control_point(degree, control_point)
+        self.degree = degree
         self.control_point = control_point # [(n + 2) * (n + 1) // 2, d]
 
-        self.ijk = self.get_ijk(self.order) # [(n + 2) * (n + 1) // 2, 3]
-        self.coefficient = self.get_coefficient(self.order) # [n + 1, n + 1]
+        self.ijk = self.get_ijk(self.degree)                 # [(n + 2) * (n + 1) // 2, 3]
+        self.coefficient = self.get_coefficient(self.degree) # [n + 1, n + 1]
 
-    def verify_shape_of_control_point(self, order: int, control_point: np.ndarray) -> None:
-        assert control_point.shape[-2] == (order + 2) * (order + 1) // 2
+    def verify_shape_of_control_point(self, degree: int, control_point: np.ndarray) -> None:
+        assert control_point.shape[-2] == (degree + 2) * (degree + 1) // 2
 
     @classmethod
     @functools.cache(maxsize=16)
@@ -62,8 +61,8 @@ class BezierTriangle(ParametricSurface):
         Return:
             (`np.ndarray`): Shape [..., (n + 2) * (n + 1) // 2]
         """
-        i, j, k = np.split(ijk.transpose([-1, -2]), 3, axis=-2) # [1, (n + 2) * (n + 1) // 2]
-        u, v, w = np.split(uvw, 3, axis=-1) # [..., 1]
+        i, j, k = np.split(ijk.transpose([-1, -2]), 3, dim=-2)    # [1, (n + 2) * (n + 1) // 2]
+        u, v, w = np.split(uvw, 3, dim=-1)                        # [..., 1]
         return coefficient[i, j] * (u ** i) * (v ** j) * (w ** k) # [..., (n + 2) * (n + 1) // 2]
 
     @classmethod
@@ -74,8 +73,8 @@ class BezierTriangle(ParametricSurface):
         Return:
             (`np.ndarray`): Shape [..., (n + 2) * (n + 1) // 2]
         """
-        i, j, k = np.split(ijk.transpose([-1, -2]), 3, axis=-2) # [1, (n + 2) * (n + 1) // 2]
-        u, v, w = np.split(uvw, 3, axis=-1) # [..., 1]
+        i, j, k = np.split(ijk.transpose([-1, -2]), 3, dim=-2)                                                    # [1, (n + 2) * (n + 1) // 2]
+        u, v, w = np.split(uvw, 3, dim=-1)                                                                        # [..., 1]
         return coefficient[i, j] * (v ** j) * (
             np.nan_to_num(i * u ** (i - 1), nan=0) * (w ** k) - (u ** i) * np.nan_to_num(k * w ** (k - 1), nan=0)
         )
@@ -88,8 +87,8 @@ class BezierTriangle(ParametricSurface):
         Return:
             (`np.ndarray`): Shape [..., (n + 2) * (n + 1) // 2]
         """
-        i, j, k = np.split(ijk.transpose([-1, -2]), 3, axis=-2) # [1, (n + 2) * (n + 1) // 2]
-        u, v, w = np.split(uvw, 3, axis=-1) # [..., 1]
+        i, j, k = np.split(ijk.transpose([-1, -2]), 3, dim=-2)                                                    # [1, (n + 2) * (n + 1) // 2]
+        u, v, w = np.split(uvw, 3, dim=-1)                                                                        # [..., 1]
         return coefficient[i, j] * (u ** i) * (
             np.nan_to_num(j * v ** (j - 1), nan=0) * (w ** k) - (v ** j) * np.nan_to_num(k * w ** (k - 1), nan=0)
         )
@@ -144,7 +143,7 @@ class BezierTriangle(ParametricSurface):
             (`np.ndarray`): Shape [..., d]
         """
         bernstein = self.get_bernstein(self.coefficient, self.ijk, uvw) # [..., (n + 2) * (n + 1) // 2]
-        return bernstein @ self.control_point # [..., d]
+        return bernstein @ self.control_point                           # [..., d]
 
     def evaluate_normal(self, uvw: np.ndarray) -> np.ndarray:
         """
@@ -160,6 +159,6 @@ class BezierTriangle(ParametricSurface):
         """
         d_bernstein_d_u = self.gererate_d_bernstein_d_u(self.coefficient, self.ijk, uvw) # [..., (n + 2) * (n + 1) // 2]
         d_bernstein_d_v = self.gererate_d_bernstein_d_v(self.coefficient, self.ijk, uvw) # [..., (n + 2) * (n + 1) // 2]
-        d_vertex_d_u = d_bernstein_d_u @ self.control_point # [..., d]
-        d_vertex_d_v = d_bernstein_d_v @ self.control_point # [..., d]
-        return np.cross(d_vertex_d_u, d_vertex_d_v) # [..., d]
+        d_vertex_d_u = d_bernstein_d_u @ self.control_point                              # [..., d]
+        d_vertex_d_v = d_bernstein_d_v @ self.control_point                              # [..., d]
+        return np.cross(d_vertex_d_u, d_vertex_d_v)                                      # [..., d]

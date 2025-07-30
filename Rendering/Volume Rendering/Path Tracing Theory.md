@@ -46,4 +46,3 @@ $$
 L(\mathbf{x}_{1} \to \mathbf{x}_{0}) = L_{e}(\mathbf{x}_{1} \to \mathbf{x}_{0}) + \sum_{i = 2}^{\infty}
 \int_{A_{2}} \cdots \int_{A_{i}} L_{e}(\mathbf{x}_{i} \to \mathbf{x}_{i - 1}) \left[ \prod_{j = 2}^{i} f_{r}(\mathbf{x}_{j} \to \mathbf{x}_{j - 1} \to \mathbf{x}_{j - 2}) V(\mathbf{x}_{j-1}, \mathbf{x}_{j}) G(\mathbf{x}_{j - 1}, \mathbf{x}_{j}) \right] \mathrm{d}\mathbf{x}_{i} \cdots \mathrm{d}\mathbf{x}_{2}.
 $$
-

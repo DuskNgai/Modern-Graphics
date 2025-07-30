@@ -53,4 +53,4 @@ $$
 
 ## Invariant Under Projection
 
-### 
+###
