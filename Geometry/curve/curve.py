@@ -6,6 +6,8 @@ from functools import lru_cache
 
 import torch
 
+__all__ = ["ParametricCurve"]
+
 
 class ParametricCurve(metaclass=ABCMeta):
 
@@ -16,7 +18,7 @@ class ParametricCurve(metaclass=ABCMeta):
         Subdivide the interval [0, 1] into `n` segments.
 
         Return:
-            (`torch.Tensor`): Shape [n, 1].
+            (`torch.Tensor`): Shape `[n, 1]`.
         """
         return torch.linspace(0.0, 1.0, n).unsqueeze(-1)
 
@@ -26,7 +28,7 @@ class ParametricCurve(metaclass=ABCMeta):
         Get `num_segments` evenly spaced points on the curve.
 
         Return:
-            (`torch.Tensor`): Shape [m, d], where d is the dimension of the curve.
+            (`torch.Tensor`): Shape `[m, d]`, where d is the dimension of the curve.
         """
         raise NotImplementedError
 
@@ -36,16 +38,16 @@ class ParametricCurve(metaclass=ABCMeta):
         Get `num_segments` evenly spaced tangent vectors on the curve.
 
         Return:
-            (`torch.Tensor`): Shape [m, d], where d is the dimension of the curve.
+            (`torch.Tensor`): Shape `[m, d]`, where d is the dimension of the curve.
         """
         raise NotImplementedError
 
     @abstractmethod
     def get_regular_curvature(self, num_segments: int) -> torch.Tensor:
         """
-        Get `num_segments` evenly spaced curvature vectors on the curve.
+        Get `num_segments` evenly spaced curvature value on the curve.
 
         Return:
-            (`torch.Tensor`): Shape [m, d], where d is the dimension of the curve.
+            (`torch.Tensor`): Shape `[m, 1]`.
         """
         raise NotImplementedError
