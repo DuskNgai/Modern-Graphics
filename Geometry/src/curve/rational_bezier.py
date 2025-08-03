@@ -30,3 +30,11 @@ class RationalBezierCurve(BezierCurve):
     def get_regular_vertex(self, num_segments: int) -> torch.Tensor:
         vertex = super().get_regular_vertex(num_segments)
         return vertex / vertex[:, -1 :]
+
+    @lru_cache(maxsize=None)
+    def get_regular_tangent(self, num_segments: int) -> torch.Tensor:
+        raise NotImplementedError
+
+    @lru_cache(maxsize=None)
+    def get_regular_acceleration(self, num_segments: int) -> torch.Tensor:
+        raise NotImplementedError

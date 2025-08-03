@@ -1,13 +1,14 @@
-from curve.bezier import BezierCurve
 from matplotlib.axes import Axes
 import matplotlib.pyplot as plt
 import numpy as np
-from visualize.visualizer import Visualizer
 
-__all__ = ["BezierVisualizer"]
+from ..visualizer import Visualizer
+from src.curve import BezierCurve
+
+__all__ = ["BezierCurveVisualizer"]
 
 
-class BezierVisualizer(Visualizer):
+class BezierCurveVisualizer(Visualizer):
 
     def __init__(self, curve: BezierCurve, num_segments: int) -> None:
         self.curve = curve

@@ -6,10 +6,9 @@
 
 | Symbol | Description |
 | :----: | :---------: |
-| $n \in \mathbb{N}$ | Degree of Bernstein Polynomial |
-| $B_{i}^{n}: \mathbb{R} \mapsto \mathbb{R}$ | $i$-th Bernstein Polynomial of degree $n$ |
-| $\mathbf{C}(t): [0, 1] \mapsto \mathbb{R}^{d}$ | Bézier Curve |
-| $\mathbf{P}_{i} \in \mathbb{R}^{d}$ | Control Point |
+| $n \in \mathbb{N}$ | Degree of Bernstein polynomial |
+| $B_{i}^{n}: [0, 1] \mapsto \mathbb{R}$ | $i$-th Bernstein polynomial of degree $n$ |
+| $\mathbf{P}_{i} \in \mathbb{R}^{d}$ | $i$-th Control point |
 
 ## Resources
 
@@ -18,11 +17,11 @@
 
 ## Bernstein Polynomial
 
-定义 Bernstein 多项式 $B_{i}^{n}: \mathbb{R} \mapsto \mathbb{R}$ 为：
+定义 Bernstein 多项式 $B_{i}^{n}: [0, 1] \mapsto \mathbb{R}$ 为：
 $$
 B_{i}^{n}(t) = \binom{n}{i} t^{i} (1 - t)^{n - i}
 $$
-其中 $i \in \{0, \dots, n\}$，$t \in [0, 1]$。
+其中 $i \in \{0, \dots, n\}$。
 
 ### Properties
 
@@ -30,6 +29,12 @@ $$
 
 $$
 B_{i}^{n}(t) \geq 0
+$$
+
+#### Symmetry Property
+
+$$
+B_{i}^{n}(t) = B_{n - i}^{n}(1 - t)
 $$
 
 #### Partition of Unity
@@ -103,7 +108,7 @@ $\{B_{i}^{n}: i \in \{0, \dots, n\}\}$ 是 $n$ 次多项式空间的基函数。
 
 Bézier 曲线是一个多项式曲线，定义为：
 $$
-\mathbf{C}(t) = \sum_{i = 0}^{n} B_{i}^{n}(t) \mathbf{P}_{i}, t \in [0, 1],
+\mathbf{C}(t) = \sum_{i = 0}^{n} B_{i}^{n}(t) \mathbf{P}_{i}, \quad t \in [0, 1],
 $$
 
 ### Properties
@@ -112,8 +117,40 @@ $$
 
 #### Variation Diminishing Property
 
-Bézier 曲线的变化不超过控制多边形的变化。也就是说，Bézier 曲线的极值点不超过控制点的个数。
+在空间中，任意平面穿过控制点折线的次数比穿过 Bézier 曲线的次数多。
 
 #### Convex Hull Property
 
 Bézier 曲线的所有点都在控制多边形的凸包内。
+
+#### Shift of Control Point
+
+给 Bézier 曲线的某个控制点 $\mathbf{P}_{j}$ 加上一个向量 $\mathbf{v}$ 会导致曲线的形状发生改变：
+
+> $$
+> \begin{aligned}
+> \mathbf{C}'(t) &= \sum_{i = 0}^{n} B_{i}^{n}(t) \mathbf{P}_{i} + B_{j}^{n}(t) \mathbf{v} \\
+> &= \mathbf{C}(t) + B_{j}^{n}(t) \mathbf{v}
+> \end{aligned}
+> $$
+
+#### Splitting Property
+
+将一条 Bézier 曲线 $\mathbf{C}$ 拆分为两条短的 Bézier 曲线 $\mathbf{C}_{1}$ 和 $\mathbf{C}_{2}$ 之后，曲线 $\mathbf{C}_{1}$ 和 $\mathbf{C}_{2}$ 的控制点由 $\mathbf{C}$ 的控制点和拆分点决定。具体来说，设在 $\mathbf{C}(u), u \in [0, 1]$ 处拆分，则
+- 曲线 $\mathbf{C}_{1}$ 的控制点为 $\{\sum_{j = 0}^{i} B_{j}^{i}(u) \mathbf{P}_{j}\}_{i = 0}^{n}$
+- 曲线 $\mathbf{C}_{2}$ 的控制点为 $\{\sum_{j = i}^{n} B_{j - i}^{n - i}(u) \mathbf{P}_{j}\}_{i = 0}^{n}$
+
+> 这里证明曲线 $\mathbf{C}_{1}$ 的表达式，对于曲线 $\mathbf{C}_{2}$ 的表达式类似。
+> $$
+> \begin{aligned}
+> \mathbf{C}_{1}(t) &= \sum_{i = 0}^{n} B_{i}^{n}(t) \left[\sum_{j = 0}^{i} B_{j}^{i}(u) \mathbf{P}_{j} \right] \\
+> &= \sum_{j = 0}^{n} \left[\sum_{i = j}^{n} B_{i}^{n}(t) B_{j}^{i}(u) \right] \mathbf{P}_{j} \\
+> &= \sum_{j = 0}^{n} \left[\sum_{i = j}^{n} \binom{n}{i} t^{i} (1 - t)^{n - i} \binom{i}{j} u^{j} (1 - u)^{i - j} \right] \mathbf{P}_{j} \\
+> &= \sum_{j = 0}^{n} \binom{n}{j} (ut)^{j} \left[\sum_{i = j}^{n} \binom{n - j}{i - j} (1 - t)^{n - i} (t - ut)^{i - j} \right] \mathbf{P}_{j} && \binom{n}{i} \binom{i}{j} = \binom{n}{j} \binom{n - j}{i - j} \\
+> &= \sum_{j = 0}^{n} \binom{n}{j} (ut)^{j} \left[\sum_{k = 0}^{n - j} \binom{n - j}{k} (1 - t)^{n - j - k} (t - ut)^{k} \right] \mathbf{P}_{j} \\
+> &= \sum_{j = 0}^{n} \binom{n}{j} (ut)^{j} (1 - ut)^{n - j} \mathbf{P}_{j} \\
+> &= \sum_{j = 0}^{n} B_{j}^{n}(ut) \mathbf{P}_{j} \\
+> &= \mathbf{C}(ut)
+> \end{aligned}
+> $$
+> 这说明 $\mathbf{C}_{1}(t)$ 与 $\mathbf{C}(ut)$ 完全贴合。

@@ -1,19 +1,17 @@
-import sys
-
 from matplotlib.axes import Axes
 import matplotlib.pyplot as plt
 import numpy as np
 
-sys.path.append("Geometry")
+from ..visualizer import Visualizer
+from src.curve import (
+    BezierCurve,
+    RationalBezierCurve,
+)
 
-from curve.bezier import BezierCurve
-from curve.rational_bezier import RationalBezierCurve
-from visualize.visualizer import Visualizer
-
-__all__ = ["RationalBezierVisualizer"]
+__all__ = ["RationalBezierCurveVisualizer"]
 
 
-class RationalBezierVisualizer(Visualizer):
+class RationalBezierCurveVisualizer(Visualizer):
 
     def __init__(self, curve: RationalBezierCurve, num_segments: int) -> None:
         self.curve = curve
@@ -58,7 +56,7 @@ class RationalBezierVisualizer(Visualizer):
 
     def visualize(self, figsize: tuple = (11, 11)) -> None:
         fig = plt.figure(figsize=figsize)
-        fig.suptitle(f"{self.curve.dimension}D Bezier Curve Visualization", fontsize=16)
+        fig.suptitle(f"{self.curve.dimension}D Rational Bezier Curve Visualization", fontsize=16)
 
         ax = fig.add_subplot(111, projection='3d')
         self._plot_curve(ax)
@@ -71,5 +69,5 @@ if __name__ == "__main__":
 
     control_points_2d = [[0, 1, 1], [1, 1, 1], [2, 0, 2]]
     curve_2d = RationalBezierCurve(control_points_2d)
-    visualizer_2d = RationalBezierVisualizer(curve_2d, num_segments=51)
+    visualizer_2d = RationalBezierCurveVisualizer(curve_2d, num_segments=51)
     visualizer_2d.visualize()
