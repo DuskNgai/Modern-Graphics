@@ -108,12 +108,47 @@ $\{B_{i}^{n}: i \in \{0, \dots, n\}\}$ 是 $n$ 次多项式空间的基函数。
 
 Bézier 曲线是一个多项式曲线，定义为：
 $$
-\mathbf{C}(t) = \sum_{i = 0}^{n} B_{i}^{n}(t) \mathbf{P}_{i}, \quad t \in [0, 1],
+\mathbf{C}\left(t; \{\mathbf{P}_{i}\}_{i = 0}^{n}\right) = \sum_{i = 0}^{n} B_{i}^{n}(t) \mathbf{P}_{i}, \quad t \in [0, 1],
 $$
 
 ### Properties
 
 很多 Bézier 曲线的性质都可以从 Bernstein 多项式的性质中推导出来。这里额外介绍一些 Bézier 曲线的性质。
+
+#### De Casteljau
+
+Bézier 曲线可以通过 De Casteljau 算法计算出来。
+$$
+\mathbf{C}\left(t; \{\mathbf{P}_{i}\}_{i = 0}^{n}\right) = (1 - t)\mathbf{C}\left(t; \{\mathbf{P}_{i}\}_{i = 0}^{n - 1}\right) + t\mathbf{C}\left(t; \{\mathbf{P}_{i}\}_{i = 1}^{n}\right)
+$$
+
+> $$
+> \begin{aligned}
+> \mathbf{C}\left(t; \{\mathbf{P}_{i}\}_{i = 0}^{n}\right) &= \sum_{i = 0}^{n} B_{i}^{n}(t) \mathbf{P}_{i} \\
+> &= \sum_{i = 0}^{n} \left[(1 - t)B_{i}^{n - 1}(t) + tB_{i - 1}^{n - 1}(t)\right] \mathbf{P}_{i} \\
+> &= (1 - t) \sum_{i = 0}^{\color{red} n - 1} B_{i}^{n - 1}(t) \mathbf{P}_{i} + t \sum_{\color{red} i = 1}^{n} B_{i - 1}^{n - 1}(t) \mathbf{P}_{i} \\
+> &= (1 - t)\mathbf{C}\left(t; \{\mathbf{P}_{i}\}_{i = 0}^{n - 1}\right) + t\mathbf{C}\left(t; \{\mathbf{P}_{i}\}_{i = 1}^{n}\right)
+> \end{aligned}
+> $$
+
+$$
+\begin{matrix}
+\mathbf{C}\left(t; \{\mathbf{P}_{0}\}\right) \\
+ & \searrow \\
+ & & \mathbf{C}\left(t; \{\mathbf{P}_{0}, \mathbf{P}_{1}\}\right) \\
+ & \nearrow & & \searrow \\
+\mathbf{C}\left(t; \{\mathbf{P}_{1}\}\right) & & & & \mathbf{C}\left(t; \{\mathbf{P}_{0}, \mathbf{P}_{1}, \mathbf{P}_{2}\}\right) \\
+ & \searrow & & \nearrow & & \searrow \\
+ & & \mathbf{C}\left(t; \{\mathbf{P}_{1}, \mathbf{P}_{2}\}\right) & & \vdots & & \mathbf{C}\left(t; \{\mathbf{P}_{i}\}_{i = 0}^{n}\right) \\
+ & \nearrow & & \searrow & & \nearrow \\
+\vdots & & \vdots & & \mathbf{C}\left(t; \{\mathbf{P}_{n - 2}, \mathbf{P}_{n - 1}, \mathbf{P}_{n}\}\right) \\
+ & \searrow & & \nearrow \\
+ & & \mathbf{C}\left(t; \{\mathbf{P}_{n - 1}, \mathbf{P}_{n}\}\right) \\
+ & \nearrow \\
+\mathbf{C}\left(t; \{\mathbf{P}_{n}\}\right)
+\end{matrix}
+$$
+De Casteljau 算法是从上图的右侧到左侧进行计算的。显然也可以从左侧到右侧进行计算。
 
 #### Variation Diminishing Property
 
@@ -137,8 +172,8 @@ Bézier 曲线的所有点都在控制多边形的凸包内。
 #### Splitting Property
 
 将一条 Bézier 曲线 $\mathbf{C}$ 拆分为两条短的 Bézier 曲线 $\mathbf{C}_{1}$ 和 $\mathbf{C}_{2}$ 之后，曲线 $\mathbf{C}_{1}$ 和 $\mathbf{C}_{2}$ 的控制点由 $\mathbf{C}$ 的控制点和拆分点决定。具体来说，设在 $\mathbf{C}(u), u \in [0, 1]$ 处拆分，则
-- 曲线 $\mathbf{C}_{1}$ 的控制点为 $\{\sum_{j = 0}^{i} B_{j}^{i}(u) \mathbf{P}_{j}\}_{i = 0}^{n}$
-- 曲线 $\mathbf{C}_{2}$ 的控制点为 $\{\sum_{j = i}^{n} B_{j - i}^{n - i}(u) \mathbf{P}_{j}\}_{i = 0}^{n}$
+- 曲线 $\mathbf{C}_{1}$ 的控制点为 $\{\mathbf{Q}_{j} = \sum_{j = 0}^{i} B_{j}^{i}(u) \mathbf{P}_{j}\}_{i = 0}^{n}$
+- 曲线 $\mathbf{C}_{2}$ 的控制点为 $\{\mathbf{Q}_{j} = \sum_{j = i}^{n} B_{j - i}^{n - i}(u) \mathbf{P}_{j}\}_{i = 0}^{n}$
 
 > 这里证明曲线 $\mathbf{C}_{1}$ 的表达式，对于曲线 $\mathbf{C}_{2}$ 的表达式类似。
 > $$
@@ -154,3 +189,24 @@ Bézier 曲线的所有点都在控制多边形的凸包内。
 > \end{aligned}
 > $$
 > 这说明 $\mathbf{C}_{1}(t)$ 与 $\mathbf{C}(ut)$ 完全贴合。
+
+#### Elevation Property
+
+将一条 $n$ 度的 Bézier 曲线 $\mathbf{C}$ 升阶到 $(n + 1)$ 度的 Bézier 曲线 $\mathbf{C}'$，它的控制点为：
+$$
+\begin{aligned}
+\mathbf{Q}_{0} &= \mathbf{P}_{0} \\
+\mathbf{Q}_{i} &= \frac{i}{n + 1} \mathbf{P}_{i - 1} + \left(1 - \frac{i}{n + 1}\right) \mathbf{P}_{i} \\
+\mathbf{Q}_{n + 1} &= \mathbf{P}_{n}
+\end{aligned}
+$$
+
+> $$
+> \begin{aligned}
+> \mathbf{C}'(t) &= \sum_{i = 0}^{n + 1} B_{i}^{n + 1}(t) \mathbf{Q}_{i} \\
+> &= B_{0}^{n + 1}(t) \mathbf{P}_{0} + \sum_{i = 1}^{n} B_{i}^{n + 1}(t) \left[\frac{i}{n + 1} \mathbf{P}_{i - 1} + \left(1 - \frac{i}{n + 1}\right) \mathbf{P}_{i}\right] + B_{n + 1}^{n + 1}(t) \mathbf{P}_{n} \\
+> &= \sum_{i = 0}^{n} \left[\left(1 - \frac{i}{n + 1}\right) B_{i}^{n + 1}(t) + \frac{i + 1}{n + 1} B_{i + 1}^{n + 1}(t) \right] \mathbf{P}_{i} \\
+> &= \sum_{i = 0}^{n} B_{i}^{n}(t) \mathbf{P}_{i} \\
+> &= \mathbf{C}(t)
+> \end{aligned}
+> $$

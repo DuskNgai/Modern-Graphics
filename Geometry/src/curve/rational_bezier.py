@@ -16,20 +16,18 @@ class RationalBezierCurve(BezierCurve):
                 where `n` is the degree of the curve,
                 and `d` is the dimension of the curve.
         """
-        self.control_point = torch.as_tensor(control_point, dtype=torch.float32) # [n + 1, d + 1]
+        super().__init__(control_point)
+        self._dimension = self._control_point.shape[1] - 1
 
     @property
-    def degree(self) -> int:
-        return self.control_point.shape[0] - 1
-
-    @property
-    def dimension(self) -> int:
-        return self.control_point.shape[1] - 1
+    @lru_cache(maxsize=1)
+    def control_point(self) -> torch.Tensor:
+        return self._control_point / self._control_point[..., -1 :]
 
     @lru_cache(maxsize=None)
     def get_regular_vertex(self, num_segments: int) -> torch.Tensor:
         vertex = super().get_regular_vertex(num_segments)
-        return vertex / vertex[:, -1 :]
+        return vertex / vertex[..., -1 :]
 
     @lru_cache(maxsize=None)
     def get_regular_tangent(self, num_segments: int) -> torch.Tensor:
