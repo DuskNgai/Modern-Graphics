@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 
-matplotlib.use("Qt5Agg")
 sys.path.append(Path(__file__).resolve().parents[3].as_posix())
 
 from src.curve import (

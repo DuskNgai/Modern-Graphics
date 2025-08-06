@@ -94,7 +94,7 @@ class BezierCurve(ParametricCurve):
 
     def _evaluate_recurrent(self, t: torch.Tensor, s: int, e: int) -> torch.Tensor:
         """
-        Recurrently evaluate Bezier curve at parameter t, which is more efficient than `_evaluate_recursive` for large `t`.
+        Recurrently evaluate Bezier curve at parameter t, which is more efficient than `_evaluate_recursive`.
         """
         t = t.unsqueeze(-1)
         points = self._control_point[s : e + 1].clone().unsqueeze(-2) # [e - s + 1, d]
@@ -148,23 +148,14 @@ class BezierCurve(ParametricCurve):
         control_point_right = torch.cat([self._evaluate_recurrent(t_tensor, i, self.degree) for i in range(self.degree + 1)])
         return BezierCurve(control_point_left), BezierCurve(control_point_right)
 
-    def elevate(self, new_degree: int) -> "BezierCurve":
+    def elevate(self) -> "BezierCurve":
         """
-        Elevate the degree of the Bezier curve to `new_degree`.
-
-        Args:
-            `new_degree` (`int`): The new degree of the Bezier curve.
+        Elevate one degree of the Bezier curve.
 
         Return:
             (`BezierCurve`): The elevated Bezier curve.
         """
-        if new_degree < self.degree:
-            raise ValueError("`new_degree` must be >= current degree")
-        if new_degree == self.degree:
-            return BezierCurve(self.control_point.clone())
-
         cp = self.control_point
-        for deg in range(self.degree, new_degree):
-            alpha = torch.arange(1, deg + 1, device=cp.device, dtype=cp.dtype).unsqueeze(1) / (deg + 1)
-            cp = torch.cat([cp[: 1], torch.lerp(cp[1 :], cp[:-1], alpha), cp[-1 :]], dim=0)
+        alpha = torch.arange(1, self.degree + 1, device=cp.device, dtype=cp.dtype).unsqueeze(1) / (self.degree + 1)
+        cp = torch.cat([cp[: 1], torch.lerp(cp[1 :], cp[:-1], alpha), cp[-1 :]], dim=0)
         return BezierCurve(cp)

@@ -148,7 +148,9 @@ $$
 \mathbf{C}\left(t; \{\mathbf{P}_{n}\}\right)
 \end{matrix}
 $$
-De Casteljau 算法是从上图的右侧到左侧进行计算的。显然也可以从左侧到右侧进行计算。
+其中 $\searrow$ 表示贡献为 $(1 - t)$，$\nearrow$ 表示贡献为 $t$。
+
+De Casteljau 算法是从上图的右侧到左侧进行计算的。形象的来说，它会分别递归计算两个节点，然后再线性组合起来。如果不存储中间结果，那这种递归的做法是低效的。显然也可以从左侧到右侧进行计算，首先计算相邻两个节点的线性组合，然后一路往上，直到只剩下一个节点。这种做法是高效的。
 
 #### Variation Diminishing Property
 
@@ -172,8 +174,8 @@ Bézier 曲线的所有点都在控制多边形的凸包内。
 #### Splitting Property
 
 将一条 Bézier 曲线 $\mathbf{C}$ 拆分为两条短的 Bézier 曲线 $\mathbf{C}_{1}$ 和 $\mathbf{C}_{2}$ 之后，曲线 $\mathbf{C}_{1}$ 和 $\mathbf{C}_{2}$ 的控制点由 $\mathbf{C}$ 的控制点和拆分点决定。具体来说，设在 $\mathbf{C}(u), u \in [0, 1]$ 处拆分，则
-- 曲线 $\mathbf{C}_{1}$ 的控制点为 $\{\mathbf{Q}_{j} = \sum_{j = 0}^{i} B_{j}^{i}(u) \mathbf{P}_{j}\}_{i = 0}^{n}$
-- 曲线 $\mathbf{C}_{2}$ 的控制点为 $\{\mathbf{Q}_{j} = \sum_{j = i}^{n} B_{j - i}^{n - i}(u) \mathbf{P}_{j}\}_{i = 0}^{n}$
+- 曲线 $\mathbf{C}_{1}$ 的控制点为 $\{\mathbf{Q}_{i} = \sum_{j = 0}^{i} B_{j}^{i}(u) \mathbf{P}_{j}\}_{i = 0}^{n}$
+- 曲线 $\mathbf{C}_{2}$ 的控制点为 $\{\mathbf{Q}_{i} = \sum_{j = i}^{n} B_{j - i}^{n - i}(u) \mathbf{P}_{j}\}_{i = 0}^{n}$
 
 > 这里证明曲线 $\mathbf{C}_{1}$ 的表达式，对于曲线 $\mathbf{C}_{2}$ 的表达式类似。
 > $$
@@ -194,11 +196,11 @@ Bézier 曲线的所有点都在控制多边形的凸包内。
 
 将一条 $n$ 度的 Bézier 曲线 $\mathbf{C}$ 升阶到 $(n + 1)$ 度的 Bézier 曲线 $\mathbf{C}'$，它的控制点为：
 $$
-\begin{aligned}
+\begin{cases}
 \mathbf{Q}_{0} &= \mathbf{P}_{0} \\
-\mathbf{Q}_{i} &= \frac{i}{n + 1} \mathbf{P}_{i - 1} + \left(1 - \frac{i}{n + 1}\right) \mathbf{P}_{i} \\
+\mathbf{Q}_{i} &= \dfrac{i}{n + 1} \mathbf{P}_{i - 1} + \left(1 - \dfrac{i}{n + 1}\right) \mathbf{P}_{i} \\
 \mathbf{Q}_{n + 1} &= \mathbf{P}_{n}
-\end{aligned}
+\end{cases}
 $$
 
 > $$
