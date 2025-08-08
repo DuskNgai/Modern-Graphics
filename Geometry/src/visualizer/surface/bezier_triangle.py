@@ -2,6 +2,7 @@ from pathlib import Path
 import sys
 
 import matplotlib.pyplot as plt
+from matplotlib.widgets import Button
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import numpy as np
 import seaborn as sns
@@ -27,6 +28,9 @@ def visualize_bezier_triangle(surface: BezierTriangleSurface, num_segments_per_e
 
     fig = plt.figure(figsize=figsize)
     ax = fig.add_subplot(111, projection="3d")
+    ax.xaxis.pane.fill = False
+    ax.yaxis.pane.fill = False
+    ax.zaxis.pane.fill = False
 
     colors = np.concatenate([uvws_np, np.full_like(uvws_np[..., 0 : 1], 0.75)], axis=-1)
     mesh = Poly3DCollection(vertices_np[faces_np], edgecolors="none", facecolors=colors[faces_np].mean(-2))
@@ -48,14 +52,25 @@ def visualize_bezier_triangle(surface: BezierTriangleSurface, num_segments_per_e
         z = [control_points[edge[0], 2], control_points[edge[1], 2]]
         ax.plot(x, y, z, color=COLORS["control"], linewidth=1, alpha=0.75)
 
-    ax.quiver(
+    quiver_plot = ax.quiver(
         *vertices_np.T,
         *normals_np.T,
         color=COLORS["normal"],
         length=0.1,
-        arrow_length_ratio=0.2,
+        arrow_length_ratio=0.1,
         label="Normals",
     )
+    quiver_plot.set_visible(False)
+
+    ax_button = plt.axes([0.3, 0.05, 0.4, 0.06])
+    toggle_button = Button(ax_button, "Toggle Normals")
+
+    def toggle_normals(event):
+        visible = quiver_plot.get_visible()
+        quiver_plot.set_visible(not visible)
+        plt.draw()
+
+    toggle_button.on_clicked(toggle_normals)
 
     ax.legend()
     ax.set_xlabel("X")
@@ -72,4 +87,4 @@ if __name__ == "__main__":
     degree = 2
     control_points = [[1, 1, 1], [0, 1, 0.5], [1, 0, 0.5], [0, 0.5, 0], [0.0, 0.0, 0], [0.5, 0, 0]]
     surface = BezierTriangleSurface(degree, control_points)
-    visualize_bezier_triangle(surface, num_segments_per_edge=5)
+    visualize_bezier_triangle(surface, num_segments_per_edge=11)

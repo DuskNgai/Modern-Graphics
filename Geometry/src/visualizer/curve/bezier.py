@@ -108,7 +108,7 @@ def _plot_vectors(ax: Axes, t: np.ndarray, vertices: np.ndarray, vectors: np.nda
             label="Vectors",
         )
     else:
-        ax.quiver(*vertices.T, *vectors.T, color=color, arrow_length_ratio=0.2, alpha=0.8, linewidth=1.5, label="Vectors")
+        ax.quiver(*vertices.T, *vectors.T, color=color, arrow_length_ratio=0.1, alpha=0.8, linewidth=1.5, label="Vectors")
 
     if dim == 2:
         ax.axis("equal")

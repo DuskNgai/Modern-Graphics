@@ -5,6 +5,7 @@ import matplotlib
 from matplotlib.axes import Axes
 from matplotlib.collections import LineCollection
 import matplotlib.pyplot as plt
+from matplotlib.widgets import Button
 from mpl_toolkits.mplot3d.art3d import Line3DCollection
 import numpy as np
 import seaborn as sns
@@ -68,18 +69,19 @@ def _plot_control_points(
     return cp
 
 
-def _plot_vectors(ax: Axes, t: np.ndarray, vertices: np.ndarray, vectors: np.ndarray, title: str) -> None:
-    color = COLORS["tangent"] if "Tangent" in title else COLORS["acceleration"]
+def _plot_vectors(ax: Axes, t: np.ndarray, vertices: np.ndarray, vectors: np.ndarray, label: str) -> matplotlib.quiver.Quiver:
+    color = COLORS["tangent"] if "Tangent" in label else COLORS["acceleration"]
 
-    ax.quiver(*vertices.T, *vectors.T, color=color, arrow_length_ratio=0.1, alpha=0.8, linewidth=1.5, label="Vectors")
+    vectors = ax.quiver(*vertices.T, *vectors.T, color=color, arrow_length_ratio=0.1, alpha=0.8, linewidth=1.5, label=label)
 
     ax.grid(True, linestyle="--", alpha=0.75)
     ax.legend(loc="best", frameon=True)
-    ax.set_title(title, fontsize=14, fontweight="bold")
     ax.set_xlabel("X", fontsize=12)
     ax.set_ylabel("Y", fontsize=12)
     ax.set_zlabel("Z", fontsize=12)
     ax.view_init(elev=45, azim=-135)
+
+    return vectors
 
 
 def visualize_rational_bezier_curve(
@@ -104,17 +106,31 @@ def visualize_rational_bezier_curve(
 
     _plot_curve(ax, vertices_homo_np, color=t_np, label="Curve (Homogeneous)")
     _plot_control_points(ax, control_point_homo_np, color=COLORS["homogeneous"], label="Control Points (Homogeneous)")
-    _plot_vectors(ax, t_np, vertices_homo_np, tangents_homo_np, "Tangent Vectors (Homogeneous)")
+    tangents_homo = _plot_vectors(ax, t_np, vertices_homo_np, tangents_homo_np, "Tangent Vectors (Homogeneous)")
 
     _plot_curve(ax, vertices_rational_np, color=t_np, label="Curve (Rational)")
     _plot_control_points(ax, control_point_rational_np, color=COLORS["rational"], label="Control Points (Rational)")
-    _plot_vectors(ax, t_np, vertices_rational_np, tangents_rational_np, "Tangent Vectors (Rational)")
+    tangents_rational = _plot_vectors(ax, t_np, vertices_rational_np, tangents_rational_np, "Tangent Vectors (Rational)")
 
     origin = np.array([0, 0, 0])
     for control_point in curve.control_point:
         line_points = np.vstack([origin, control_point])
         ax.plot(*line_points.T, 'k:', alpha=0.3, linewidth=1)
     ax.scatter(*origin, c='k', s=40, label="Origin")
+
+    tangents_homo.set_visible(False)
+    tangents_rational.set_visible(False)
+
+    ax_button = plt.axes([0.3, 0.05, 0.4, 0.06])
+    toggle_button = Button(ax_button, "Toggle Normals")
+
+    def toggle_normals(event):
+        visible = tangents_homo.get_visible()
+        tangents_homo.set_visible(not visible)
+        tangents_rational.set_visible(not visible)
+        plt.draw()
+
+    toggle_button.on_clicked(toggle_normals)
 
     ax.axis("equal")
     ax.grid(True)
@@ -129,9 +145,9 @@ def visualize_rational_bezier_curve(
 
 
 if __name__ == "__main__":
-    num_segments = 51
+    num_segments = 11
 
-    control_points_2d = [[0, 1, 1], [1, 1, 1], [2, 0, 2]]
+    control_points_2d = [[1, 0, 1], [1, 1, 1], [0, 2, 2]]
     curve_2d = BezierCurve(control_points_2d)
     rational_curve_2d = RationalBezierCurve(control_points_2d)
     visualize_rational_bezier_curve(curve_2d, rational_curve_2d, num_segments=num_segments)
