@@ -12,18 +12,12 @@ from src.surface import BezierTriangleSurface
 
 sns.set_style(style="whitegrid")
 COLORS = {
-    "control": "#e74c3c",
-    "surface": "#3498db",
-    "normal": "#9b59b6",
+    "control": "#3498db",
+    "normal": "#e74c3c",
 }
 
 
-def visualize_bezier_triangle(
-    surface: BezierTriangleSurface,
-    num_segments_per_edge: int = 10,
-    normal_scale: float = 0.1,
-    figsize: tuple = (10, 8),
-) -> None:
+def visualize_bezier_triangle(surface: BezierTriangleSurface, num_segments_per_edge: int = 11, figsize: tuple = (10, 8)) -> None:
     control_points = surface.control_point.numpy()
     vertices, faces, normals, uvws = surface.get_regular_mesh(num_segments_per_edge)
     vertices_np = vertices.numpy()
@@ -58,7 +52,7 @@ def visualize_bezier_triangle(
         *vertices_np.T,
         *normals_np.T,
         color=COLORS["normal"],
-        length=normal_scale,
+        length=0.1,
         arrow_length_ratio=0.2,
         label="Normals",
     )
@@ -78,4 +72,4 @@ if __name__ == "__main__":
     degree = 2
     control_points = [[1, 1, 1], [0, 1, 0.5], [1, 0, 0.5], [0, 0.5, 0], [0.0, 0.0, 0], [0.5, 0, 0]]
     surface = BezierTriangleSurface(degree, control_points)
-    visualize_bezier_triangle(surface, num_segments_per_edge=11, normal_scale=0.1)
+    visualize_bezier_triangle(surface, num_segments_per_edge=5)

@@ -5,9 +5,9 @@ $$
 x(t) = \frac{1 - t^{2}}{1 + t^{2}}, \quad y(t) = \frac{2t}{1 + t^{2}}, \quad t \in [0, 1]
 $$
 
-## Rational Bézier Curve
+## Rational Bézier/B-spline Curve
 
-因此拓展 Bézier 曲线为有理式 Bézier 曲线：
+因此拓展 Bézier/B-spline 曲线为有理式 Bézier/B-spline 曲线：
 $$
 \mathbf{C}(t) = \frac{\sum_{i = 0}^{n} B_{i}^{n}(t) w_{i} \mathbf{P}_{i}}{\sum_{i = 0}^{n} B_{i}^{n}(t) w_{i}}, \quad t \in [0, 1],
 $$
@@ -20,20 +20,9 @@ $$
 \mathbf{C}(t) = \sum_{i = 0}^{n} R_{i}^{n}(t) \mathbf{P}_{i}, \quad t \in [0, 1]
 $$
 
-### Properties
+特别是有一种表达能力特别强的曲线，称为 **Non-uniform Rational B-spline (NURBS)** 曲线。
 
-Convex Hull Property, Variation Diminishing Property 仍然是满足的。
-
-#### First Order Derivatives
-
-$$
-\begin{aligned}
-\frac{\mathrm{d}}{\mathrm{d}t} R_{i}^{n}(t) &= w_{i} \frac{\dfrac{\mathrm{d}}{\mathrm{d}t} B_{i}^{n}(t) \sum_{j = 0}^{n} B_{j}^{n}(t) w_{j} - B_{i}^{n}(t) \sum_{j = 0}^{n} \dfrac{\mathrm{d}}{\mathrm{d}t} B_{j}^{n}(t) w_{j}}{\left(\sum_{j = 0}^{n} B_{j}^{n}(t) w_{j}\right)^{2}} \\
-&= n w_{i} \frac{\left[B_{i - 1}^{n - 1}(t) - B_{i}^{n - 1}(t)\right] \sum_{j = 0}^{n} B_{j}^{n}(t) w_{j} - B_{i}^{n}(t) \sum_{j = 0}^{n} \left[B_{j - 1}^{n - 1}(t) - B_{j}^{n - 1}(t)\right] w_{j}}{\left(\sum_{j = 0}^{n} B_{j}^{n}(t) w_{j}\right)^{2}} \\
-\end{aligned}
-$$
-
-## Projection
+### Projection
 
 对于任意点 $\mathbf{P} = (x, y, z)$, 定义其齐次坐标 $\mathbf{P}^{w} = (wx, wy, wz, w)$, ($w \ne 0$)。定义投影变换 $H: \mathbb{R}^{4} \to \mathbb{R}^{3}$ 为 $H(\mathbf{P}^{w}) = \mathbf{P}$。利用齐次坐标定义的多项式 Bézier 曲线
 $$
@@ -43,6 +32,32 @@ $$
 $$
 \mathbf{C}(t) = H(\mathbf{C}^{w}(t))
 $$
+
+### Properties
+
+Convex Hull Property, Variation Diminishing Property 仍然是满足的。
+
+#### First Order Derivatives
+
+一阶导数用齐次坐标下的对应曲线表示会简单一点。
+
+> 令：
+> $$
+> w(t) = \sum_{i = 0}^{n} B_{i}^{n}(t) w_{i}
+> $$
+> 是有理式曲线的权重函数，
+> $$
+> \mathbf{A}(t) := w(t) \mathbf{C}(t)
+> $$
+> 是齐次坐标下的有理式曲线 $\mathbf{C}^{w}$ 的前三个分量，是一个多项式曲线。
+> $$
+> \begin{aligned}
+> \frac{\mathrm{d}}{\mathrm{d}t} \mathbf{C}(t) &= \frac{\mathrm{d}}{\mathrm{d}t} \frac{w(t) \mathbf{C}(t)}{w(t)} \\
+> &= \frac{w(t) \dfrac{\mathrm{d}}{\mathrm{d}t} \mathbf{A}(t) - \dfrac{\mathrm{d}}{\mathrm{d}t} w(t) \mathbf{A}(t)}{w(t)^{2}} \\
+> &= \frac{w(t) \dfrac{\mathrm{d}}{\mathrm{d}t} \mathbf{A}(t) - \dfrac{\mathrm{d}}{\mathrm{d}t} w(t) \cdot w(t) \mathbf{C}(t)}{w(t)^{2}} \\
+> &= \frac{\dfrac{\mathrm{d}}{\mathrm{d}t} \mathbf{A}(t) - \dfrac{\mathrm{d}}{\mathrm{d}t} w(t) \cdot \mathbf{C}(t)}{w(t)}
+> \end{aligned}
+> $$
 
 ## Examples
 

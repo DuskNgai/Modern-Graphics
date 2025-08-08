@@ -161,9 +161,9 @@ def _plot_osculating_circles(
 def visualize_bezier_curve(curve: BezierCurve, num_segments: int = 100, figsize: tuple[int, int] = (16, 8)) -> None:
     if num_segments < 2:
         raise ValueError("num_segments must be at least 2 for meaningful visualization.")
+    t_np = curve.get_regular_t(num_segments).numpy()
 
     control_point_np = curve.control_point.numpy()
-    t_np = curve.get_regular_t(num_segments).numpy()
     vertices_np = curve.get_regular_vertex(num_segments).numpy()
     tangents_np = curve.get_regular_tangent(num_segments).numpy()
     accelerations_np = curve.get_regular_acceleration(num_segments).numpy()
