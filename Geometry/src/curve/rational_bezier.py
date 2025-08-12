@@ -24,17 +24,17 @@ class RationalBezierCurve(BezierCurve):
     def control_point(self) -> torch.Tensor:
         return self._control_point / self._control_point[..., -1 :]
 
-    @lru_cache(maxsize=None)
+    @lru_cache()
     def get_regular_vertex(self, num_segments: int) -> torch.Tensor:
         vertex = super().get_regular_vertex(num_segments)
         return vertex / vertex[..., -1 :]
 
-    @lru_cache(maxsize=None)
+    @lru_cache()
     def get_regular_tangent(self, num_segments: int) -> torch.Tensor:
         vertex = super().get_regular_vertex(num_segments)
         tangent = super().get_regular_tangent(num_segments)
         return (tangent - tangent[..., -1 :] * vertex / vertex[..., -1 :]) / vertex[..., -1 :]
 
-    @lru_cache(maxsize=None)
+    @lru_cache()
     def get_regular_acceleration(self, num_segments: int) -> torch.Tensor:
         raise NotImplementedError

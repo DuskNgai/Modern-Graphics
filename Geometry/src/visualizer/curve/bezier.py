@@ -293,7 +293,7 @@ def visualization_degree_elevation(curve: "BezierCurve", figsize: tuple[int, int
         ax=ax_slider,
         label="Degree Increase",
         valmin=0,
-        valmax=100,
+        valmax=50,
         valinit=init_degree_increase,
         valstep=1,
         color=COLORS["curve"],

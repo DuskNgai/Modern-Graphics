@@ -69,9 +69,7 @@ def _plot_control_points(
     return cp
 
 
-def _plot_vectors(ax: Axes, t: np.ndarray, vertices: np.ndarray, vectors: np.ndarray, label: str) -> matplotlib.quiver.Quiver:
-    color = COLORS["tangent"] if "Tangent" in label else COLORS["acceleration"]
-
+def _plot_vectors(ax: Axes, vertices: np.ndarray, vectors: np.ndarray, color: str, label: str) -> matplotlib.quiver.Quiver:
     vectors = ax.quiver(*vertices.T, *vectors.T, color=color, arrow_length_ratio=0.1, alpha=0.8, linewidth=1.5, label=label)
 
     ax.grid(True, linestyle="--", alpha=0.75)
@@ -106,11 +104,15 @@ def visualize_rational_bezier_curve(
 
     _plot_curve(ax, vertices_homo_np, color=t_np, label="Curve (Homogeneous)")
     _plot_control_points(ax, control_point_homo_np, color=COLORS["homogeneous"], label="Control Points (Homogeneous)")
-    tangents_homo = _plot_vectors(ax, t_np, vertices_homo_np, tangents_homo_np, "Tangent Vectors (Homogeneous)")
+    tangents_homo = _plot_vectors(
+        ax, vertices_homo_np, tangents_homo_np, color=COLORS["homogeneous"], label="Tangent Vectors (Homogeneous)"
+    )
 
     _plot_curve(ax, vertices_rational_np, color=t_np, label="Curve (Rational)")
     _plot_control_points(ax, control_point_rational_np, color=COLORS["rational"], label="Control Points (Rational)")
-    tangents_rational = _plot_vectors(ax, t_np, vertices_rational_np, tangents_rational_np, "Tangent Vectors (Rational)")
+    tangents_rational = _plot_vectors(
+        ax, vertices_rational_np, tangents_rational_np, color=COLORS["rational"], label="Tangent Vectors (Rational)"
+    )
 
     origin = np.array([0, 0, 0])
     for control_point in curve.control_point:
@@ -122,7 +124,7 @@ def visualize_rational_bezier_curve(
     tangents_rational.set_visible(False)
 
     ax_button = plt.axes([0.3, 0.05, 0.4, 0.06])
-    toggle_button = Button(ax_button, "Toggle Normals")
+    toggle_button = Button(ax_button, "Toggle Tangents")
 
     def toggle_normals(event):
         visible = tangents_homo.get_visible()
