@@ -12,7 +12,7 @@ __all__ = ["ParametricCurve"]
 class ParametricCurve(metaclass=ABCMeta):
 
     @classmethod
-    @lru_cache()
+    @lru_cache
     def get_regular_t(cls, n: int) -> torch.Tensor:
         """
         Subdivide the interval [0, 1] into `n` segments.

@@ -22,7 +22,7 @@ class BezierTriangleSurface(ParametricSurface):
         assert self.control_point.shape[-2] == (self.degree + 2) * (self.degree + 1) // 2
 
     @classmethod
-    @lru_cache()
+    @lru_cache
     def get_ijk(cls, n: int) -> torch.LongTensor:
         """
         i + j + k = n, 0 <= i, j, k <= n
@@ -38,7 +38,7 @@ class BezierTriangleSurface(ParametricSurface):
         return torch.tensor(ijk, dtype=torch.long)
 
     @classmethod
-    @lru_cache()
+    @lru_cache
     def get_regular_uvw(cls, n: int) -> torch.Tensor:
         """
         u + v + w = 1, 0 <= u, v, w <= 1
@@ -49,7 +49,7 @@ class BezierTriangleSurface(ParametricSurface):
         return cls.get_ijk(n) / n
 
     @classmethod
-    @lru_cache()
+    @lru_cache
     def get_coefficient(cls, n: int) -> torch.Tensor:
         """
         n! / (i! * j! * k!)
@@ -130,7 +130,7 @@ class BezierTriangleSurface(ParametricSurface):
         term2 = (u ** i) * (v ** j) * torch.where(k > 0, k * (w ** (k - 1)), torch.zeros_like(w))
         return coefficient[i, j] * (term1 - term2)
 
-    @lru_cache()
+    @lru_cache
     def get_regular_vertex(self, num_segments_per_edge: int) -> torch.Tensor:
         """
         Return:
@@ -138,7 +138,7 @@ class BezierTriangleSurface(ParametricSurface):
         """
         return self.evaluate(self.get_regular_uvw(num_segments_per_edge))
 
-    @lru_cache()
+    @lru_cache
     def get_regular_face(self, num_segments_per_edge: int) -> torch.Tensor:
         """
         Return:
@@ -153,7 +153,7 @@ class BezierTriangleSurface(ParametricSurface):
             face.append([r - 1, r + i, r + i + 1])
         return torch.tensor(face, dtype=torch.long)         # [num_segments_per_edge * num_segments_per_edge, 3]
 
-    @lru_cache()
+    @lru_cache
     def get_regular_normal(self, num_segments_per_edge: int) -> torch.Tensor:
         """
         Return:

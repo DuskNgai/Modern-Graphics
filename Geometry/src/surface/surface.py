@@ -23,7 +23,7 @@ class ParametricSurface(metaclass=ABCMeta):
     def get_regular_normal(self, num_segments_per_edge: int) -> torch.Tensor:
         raise NotImplementedError
 
-    @lru_cache()
+    @lru_cache
     def get_regular_mesh(self, num_segments_per_edge: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         vertex = self.get_regular_vertex(num_segments_per_edge)
         face = self.get_regular_face(num_segments_per_edge)

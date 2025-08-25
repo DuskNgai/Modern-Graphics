@@ -35,19 +35,19 @@ class BezierCurve(ParametricCurve):
     def dimension(self) -> int:
         return self._dimension
 
-    @lru_cache()
+    @lru_cache
     def get_regular_vertex(self, num_segments: int) -> torch.Tensor:
         return self.evaluate(self.get_regular_t(num_segments))
 
-    @lru_cache()
+    @lru_cache
     def get_regular_tangent(self, num_segments: int) -> torch.Tensor:
         return self._evaluate_tangent(self.get_regular_t(num_segments))
 
-    @lru_cache()
+    @lru_cache
     def get_regular_acceleration(self, num_segments: int) -> torch.Tensor:
         return self._evaluate_acceleration(self.get_regular_t(num_segments))
 
-    @lru_cache()
+    @lru_cache
     def get_regular_curvature(self, num_segments: int) -> torch.Tensor:
         tangent = self.get_regular_tangent(num_segments)
         acceleration = self.get_regular_acceleration(num_segments)
