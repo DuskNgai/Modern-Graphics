@@ -29,5 +29,4 @@ class ParametricSurface(metaclass=ABCMeta):
         face = self.get_regular_face(num_segments_per_edge)
         normal = self.get_regular_normal(num_segments_per_edge)
         normal = normal / torch.norm(normal, dim=-1, keepdim=True)
-        uvw = self.get_ijk(num_segments_per_edge) / num_segments_per_edge
-        return vertex, face, normal, uvw
+        return vertex, face, normal

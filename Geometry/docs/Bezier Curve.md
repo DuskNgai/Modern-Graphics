@@ -175,7 +175,7 @@ Bézier 曲线的所有点都在控制多边形的凸包内。
 
 将一条 Bézier 曲线 $\mathbf{C}$ 拆分为两条短的 Bézier 曲线 $\mathbf{C}_{1}$ 和 $\mathbf{C}_{2}$ 之后，曲线 $\mathbf{C}_{1}$ 和 $\mathbf{C}_{2}$ 的控制点由 $\mathbf{C}$ 的控制点和拆分点决定。具体来说，设在 $\mathbf{C}(u), u \in [0, 1]$ 处拆分，则
 - 曲线 $\mathbf{C}_{1}$ 的控制点为 $\{\mathbf{Q}_{i} = \sum_{j = 0}^{i} B_{j}^{i}(u) \mathbf{P}_{j}\}_{i = 0}^{n}$
-- 曲线 $\mathbf{C}_{2}$ 的控制点为 $\{\mathbf{Q}_{i} = \sum_{j = i}^{n} B_{j - i}^{n - i}(u) \mathbf{P}_{j}\}_{i = 0}^{n}$
+- 曲线 $\mathbf{C}_{2}$ 的控制点为 $\{\mathbf{R}_{i} = \sum_{j = i}^{n} B_{j - i}^{n - i}(u) \mathbf{P}_{j}\}_{i = 0}^{n}$
 
 > 这里证明曲线 $\mathbf{C}_{1}$ 的表达式，对于曲线 $\mathbf{C}_{2}$ 的表达式类似。
 > $$

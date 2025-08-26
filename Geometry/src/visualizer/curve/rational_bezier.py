@@ -146,6 +146,110 @@ def visualize_rational_bezier_curve(
     plt.show()
 
 
+def circle() -> None:
+    control_points_list = [
+        np.array([[1, 0, 1], [1, 1, 1], [0, 2, 2]]),     # Quadrant 1
+        np.array([[0, 1, 1], [-1, 1, 1], [-2, 0, 2]]),   # Quadrant 2
+        np.array([[-1, 0, 1], [-1, -1, 1], [0, -2, 2]]), # Quadrant 3
+        np.array([[0, -1, 1], [1, -1, 1], [2, 0, 2]]),   # Quadrant 4
+    ]
+
+    curves = [BezierCurve(cp) for cp in control_points_list]
+    rational_curves = [RationalBezierCurve(cp) for cp in control_points_list]
+
+    # Setup the plot
+    fig = plt.figure(figsize=(12, 12))
+    ax = fig.add_subplot(111, projection="3d", elev=45, azim=-135)
+    fig.suptitle("Full Circle via 4 Rational Bezier Curve Segments", fontsize=16)
+
+    t_np = curves[0].get_regular_t(num_segments).numpy()
+    color = ["red", "orange", "blue", "purple"]
+
+    # Lists to store tangent data for all segments
+    all_tangents_homo_vertices = []
+    all_tangents_homo_vectors = []
+    all_tangents_rational_vertices = []
+    all_tangents_rational_vectors = []
+
+    for i in range(4):
+        curve = curves[i]
+        rational_curve = rational_curves[i]
+
+        # Plot homogeneous curve and control points
+        vertices_homo_np = curve.get_regular_vertex(num_segments).numpy()
+        tangents_homo_np = curve.get_regular_tangent(num_segments).numpy()
+        _plot_curve(ax, vertices_homo_np, color=color[i])
+        _plot_control_points(ax, curve.control_point.numpy(), color=COLORS["homogeneous"])
+        all_tangents_homo_vertices.append(vertices_homo_np)
+        all_tangents_homo_vectors.append(tangents_homo_np)
+
+        # Plot rational curve and control points
+        vertices_rational_np = rational_curve.get_regular_vertex(num_segments).numpy()
+        tangents_rational_np = rational_curve.get_regular_tangent(num_segments).numpy()
+        _plot_curve(ax, vertices_rational_np, color=t_np)
+        _plot_control_points(ax, rational_curve.control_point.numpy(), color=COLORS["rational"])
+        all_tangents_rational_vertices.append(vertices_rational_np)
+        all_tangents_rational_vectors.append(tangents_rational_np)
+
+    # Combine tangent data from all segments
+    tangents_homo_vertices_np = np.vstack(all_tangents_homo_vertices)
+    tangents_homo_vectors_np = np.vstack(all_tangents_homo_vectors)
+    tangents_rational_vertices_np = np.vstack(all_tangents_rational_vertices)
+    tangents_rational_vectors_np = np.vstack(all_tangents_rational_vectors)
+
+    # Create quiver plots for the combined tangents
+    tangents_homo = ax.quiver(
+        *tangents_homo_vertices_np.T,
+        *tangents_homo_vectors_np.T,
+        color=COLORS["homogeneous"],
+        arrow_length_ratio=0.1,
+        alpha=0.8,
+        linewidth=1.5,
+        label="Tangent Vectors (Homogeneous)"
+    )
+    tangents_rational = ax.quiver(
+        *tangents_rational_vertices_np.T,
+        *tangents_rational_vectors_np.T,
+        color=COLORS["rational"],
+        arrow_length_ratio=0.1,
+        alpha=0.8,
+        linewidth=1.5,
+        label="Tangent Vectors (Rational)"
+    )
+
+    # Plot origin and lines to control points
+    origin = np.array([0, 0, 0])
+    for cp_set in control_points_list:
+        for control_point in cp_set:
+            line_points = np.vstack([origin, control_point])
+            ax.plot(*line_points.T, 'k:', alpha=0.3, linewidth=1)
+    ax.scatter(*origin, c='k', s=40, label="Origin")
+
+    tangents_homo.set_visible(False)
+    tangents_rational.set_visible(False)
+
+    ax_button = plt.axes([0.3, 0.05, 0.4, 0.06])
+    toggle_button = Button(ax_button, "Toggle Tangents")
+
+    def toggle_tangents(event):
+        visible = tangents_homo.get_visible()
+        tangents_homo.set_visible(not visible)
+        tangents_rational.set_visible(not visible)
+        plt.draw()
+
+    toggle_button.on_clicked(toggle_tangents)
+
+    ax.axis("equal")
+    ax.grid(True, linestyle="--", alpha=0.75)
+    ax.set_xlabel("X", fontsize=12)
+    ax.set_ylabel("Y", fontsize=12)
+    ax.set_zlabel("Z", fontsize=12)
+    ax.view_init(elev=45, azim=-135)
+
+    plt.tight_layout(rect=[0, 0.07, 1, 0.95])
+    plt.show()
+
+
 if __name__ == "__main__":
     num_segments = 11
 
