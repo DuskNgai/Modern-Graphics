@@ -23,7 +23,7 @@ class BezierTriangleSurface(ParametricSurface):
 
     @classmethod
     @lru_cache
-    def get_ijk(cls, n: int) -> torch.LongTensor:
+    def get_ijk(cls, n: int) -> tuple[torch.LongTensor, dict[tuple[int, int, int], int], dict[int, tuple[int, int, int]]]:
         """
         i + j + k = n, 0 <= i, j, k <= n
 
@@ -216,7 +216,7 @@ class BezierTriangleSurface(ParametricSurface):
         - The u-v edge (ab) is split by point f.
         - The v-w edge (bc) is split by point d.
         - The w-u edge (ca) is split by point e.
-        
+
         The split parameters `r`, `s` and `t` define these points.
         - `f` is determined by `t`.
         - `d` is determined by `r`.
@@ -268,14 +268,14 @@ class BezierTriangleSurface(ParametricSurface):
             maps = []
             for r in range(n):
                 current_degree = n - r
-                _, map_in, _ = self.get_ijk(current_degree)
+                _, ijk_to_index, _ = self.get_ijk(current_degree)
                 ijk_out, _, _ = self.get_ijk(current_degree - 1)
 
                 indices_i, indices_j, indices_k = [], [], []
                 for i, j, k in ijk_out.tolist():
-                    indices_i.append(map_in[(i + 1, j, k)])
-                    indices_j.append(map_in[(i, j + 1, k)])
-                    indices_k.append(map_in[(i, j, k + 1)])
+                    indices_i.append(ijk_to_index[(i + 1, j, k)])
+                    indices_j.append(ijk_to_index[(i, j + 1, k)])
+                    indices_k.append(ijk_to_index[(i, j, k + 1)])
 
                 maps.append((
                     torch.tensor(indices_i, dtype=torch.long, device=device),
@@ -290,15 +290,11 @@ class BezierTriangleSurface(ParametricSurface):
 
         maps = _get_de_casteljau_maps(n, device)
 
-        # 2. 准备 "开花" 原理所需的 n 个参数
-        # 我们要一次性计算所有新控制点，所以批次大小是 len(self.ijk)
-        # args 的形状为 [batch_size, n, 3]
-        # args[i, r, :] 是用于计算第 i 个新控制点时，在第 r 步所需的 (u,v,w)
         batch_size = self.ijk.shape[0]
         args = torch.zeros(batch_size, n, 3, device=device, dtype=dtype)
         v1_t, v2_t, v3_t = [torch.tensor(v, device=device, dtype=dtype) for v in (v1, v2, v3)]
 
-        # 这个循环只用于构建参数矩阵，计算本身是并行的
+        # Repeat v1, v2, v3
         for i, (i_p, j_p, k_p) in enumerate(self.ijk):
             if i_p > 0:
                 args[i, : i_p] = v1_t
@@ -307,34 +303,18 @@ class BezierTriangleSurface(ParametricSurface):
             if k_p > 0:
                 args[i, i_p + j_p :] = v3_t
 
-        # 3. 初始化控制点批次
-        # temp_cp 的形状为 [batch_size, num_control_points, d]
-        temp_cp = self.control_point.unsqueeze(0).expand(batch_size, -1, -1)
+        temp_cp = self.control_point.unsqueeze(0).expand(batch_size, -1, -1) # [batch_size, num_control_points, d]
 
-        # 4. 执行 n 步并行的德卡斯特里奥算法
-        # 这个循环是串行的，但其内部所有操作都是在整个批次上并行执行的
+        # De Casteljau's algorithm
         for r in range(n):
-            # 获取当前步骤所需的 (u,v,w) 参数，形状 [batch_size, 3]
             uvw_params = args[:, r, :]
-            u, v, w = uvw_params.unbind(-1) # u, v, w 的形状都是 [batch_size]
+            u, v, w = uvw_params.unbind(-1) # [batch_size]
 
-            # 获取当前步骤所需的索引映射
-            indices_i, indices_j, indices_k = maps[r]
+            indices_i, indices_j, indices_k = maps[r] # [num_output_points]
+            cp_i = temp_cp[:, indices_i, :]           # [batch_size, num_output_points, d]
+            cp_j = temp_cp[:, indices_j, :]           # [batch_size, num_output_points, d]
+            cp_k = temp_cp[:, indices_k, :]           # [batch_size, num_output_points, d]
 
-            # --- 这是向量化和并行化的核心 ---
-            # 使用高级索引一次性收集所有需要计算的点
-            # cp_i 的形状为 [batch_size, num_output_points, d]
-            cp_i = temp_cp[:, indices_i, :]
-            cp_j = temp_cp[:, indices_j, :]
-            cp_k = temp_cp[:, indices_k, :]
+            temp_cp = (u.view(-1, 1, 1) * cp_i + v.view(-1, 1, 1) * cp_j + w.view(-1, 1, 1) * cp_k) # [batch_size, num_output_points, d]
 
-            # 使用广播 (broadcasting) 进行并行计算
-            # u,v,w 的形状从 [batch_size] 变为 [batch_size, 1, 1]
-            # 以便能和 [batch_size, num_output_points, d] 形状的张量相乘
-            temp_cp = (u.view(-1, 1, 1) * cp_i + v.view(-1, 1, 1) * cp_j + w.view(-1, 1, 1) * cp_k)
-            # ------------------------------------
-
-        # 5. 提取最终结果
-        # 经过 n 步后, temp_cp 的形状为 [batch_size, 1, d]
-        # 我们去掉中间维度为 1 的部分，得到 [batch_size, d]
-        return temp_cp.squeeze(1)
+        return temp_cp.squeeze(1) # [batch_size, 1, d] -> [batch_size, d]

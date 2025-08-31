@@ -67,7 +67,7 @@ def visualize_bezier_triangle(surface: BezierTriangleSurface, num_segments_per_e
 
     draw_control_net(ax, control_points, surface.degree, color=COLORS["control"], s=50, linewidth=1, alpha=0.75, label="Control Points")
 
-    quiver_plot = ax.quiver(*vertices_np.T, *normals_np.T, color=COLORS["normal"], length=0.1, arrow_length_ratio=0.1, label="Normals")
+    quiver_plot = ax.quiver(*vertices_np.T, *normals_np.T, color=COLORS["normal"], length=0.1, arrow_length_ratio=0.2, label="Normals")
     quiver_plot.set_visible(False)
 
     ax_button = plt.axes([0.3, 0.05, 0.4, 0.06])

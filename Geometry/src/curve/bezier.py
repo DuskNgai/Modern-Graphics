@@ -73,34 +73,15 @@ class BezierCurve(ParametricCurve):
         """
         return self._evaluate_recurrent(t, 0, self.degree)
 
-    def _evaluate_recursive(self, t: torch.Tensor, s: int, e: int) -> torch.Tensor:
-        """
-        C(t) = (1 - t) * P[s : e - 1] + t * P[s + 1 : e]
-
-        Args:
-            `t` (`torch.Tensor`): Shape [...], values in [0, 1]
-
-        Return:
-            (`torch.Tensor`): Shape [..., d]
-        """
-        if s == e:
-            return self._control_point[s : e + 1]      # [1, d]
-        else:
-            return torch.lerp(
-                self._evaluate_recursive(t, s, e - 1),
-                self._evaluate_recursive(t, s + 1, e),
-                t.unsqueeze(-1),
-            )                                          # [..., d]
-
     def _evaluate_recurrent(self, t: torch.Tensor, s: int, e: int) -> torch.Tensor:
         """
-        Recurrently evaluate Bezier curve at parameter t, which is more efficient than `_evaluate_recursive`.
+        Recurrently evaluate Bezier curve at parameter t. O(degree) time complexity.
         """
         t = t.unsqueeze(-1)
-        points = self._control_point[s : e + 1].clone().unsqueeze(-2) # [e - s + 1, d]
+        points = self._control_point[s : e + 1].unsqueeze(-2) # [e - s + 1, 1, d]
         for _ in range(e - s):
-            points = torch.lerp(points[:-1], points[1 :], t)          # [e - s, ..., d]
-        return points.squeeze(-3)                                     # [..., d]
+            points = torch.lerp(points[:-1], points[1 :], t)  # [e - s -> 1, ..., d]
+        return points.squeeze(-3)                             # [..., d]
 
     def _evaluate_tangent(self, t: torch.Tensor) -> torch.Tensor:
         """
@@ -133,20 +114,83 @@ class BezierCurve(ParametricCurve):
             self._evaluate_recurrent(t, 0, self.degree - 2)
         )
 
-    def split(self, t: float) -> tuple["BezierCurve", "BezierCurve"]:
+    def split(self, u: float) -> tuple["BezierCurve", "BezierCurve"]:
         """
-        Split Bezier curve at parameter t.
+        Split Bezier curve at parameter `u`. O(degree) time complexity.
 
         Args:
-            `t` (`float`): Value in [0, 1]
+            `u` (`float`): Value in [0, 1]
 
         Return:
             (`BezierCurve`, `BezierCurve`): Two Bezier curves.
         """
-        t_tensor = torch.tensor(t, dtype=self.control_point.dtype, device=self.control_point.device)
-        control_point_left = torch.cat([self._evaluate_recurrent(t_tensor, 0, i) for i in range(self.degree + 1)])
-        control_point_right = torch.cat([self._evaluate_recurrent(t_tensor, i, self.degree) for i in range(self.degree + 1)])
+        assert 0.0 <= u <= 1.0, f"Splitting parameter u must be in [0, 1], but got {u}"
+
+        u_tensor = torch.tensor(u, dtype=self.control_point.dtype, device=self.control_point.device)
+
+        # return self._split_matrix(u_tensor)
+        return self._split_de_casteljau(u_tensor)
+
+    def _split_de_casteljau(self, u_tensor: torch.Tensor) -> tuple["BezierCurve", "BezierCurve"]:
+        """
+        Using De Casteljau's algorithm to split Bezier curve at parameter `u`.
+        """
+        cp = self.control_point
+        l_cp, r_cp = [self.control_point[0]], [self.control_point[-1]]
+
+        for _ in range(self.degree):
+            cp = torch.lerp(cp[:-1], cp[1 :], u_tensor)
+            l_cp.append(cp[0])
+            r_cp.append(cp[-1])
+
+        control_point_left = torch.stack(l_cp, dim=0)
+        control_point_right = torch.stack(r_cp[::-1], dim=0)
+
         return BezierCurve(control_point_left), BezierCurve(control_point_right)
+
+    def _split_matrix(self, u_tensor: torch.Tensor) -> tuple["BezierCurve", "BezierCurve"]:
+        """
+        A experimental implementation of splitting using matrix operations.
+        Only triggered when `u = 0.5`.
+        """
+
+        @lru_cache
+        def _get_binom_coeffs(n: int) -> torch.Tensor:
+            """
+            Computes a matrix of binomial coefficients, where binom[i, j] = C(i, j).
+            """
+            binom = torch.zeros((n + 1, n + 1), dtype=int)
+            binom[0, 0] = 1
+            for i in range(1, n + 1):
+                binom[i, 0] = 1
+                for j in range(1, i + 1):
+                    binom[i, j] = binom[i - 1, j - 1] + binom[i - 1, j]
+            return binom
+
+        n = self.degree
+        binom_coeffs = _get_binom_coeffs(n)
+
+        i_indices = torch.arange(n + 1, device=self.control_point.device).view(-1, 1)
+        j_indices = torch.arange(n + 1, device=self.control_point.device).view(1, -1)
+
+        # m_l[i, j] = C[i, j] * u^j * v^{i - j}
+        u_pow_l = u_tensor.pow(j_indices)
+        v_pow_l = (1 - u_tensor).pow(i_indices - j_indices)
+        m_l = torch.tril(binom_coeffs * u_pow_l * v_pow_l)
+
+        rev_i = n - i_indices
+        rev_j = n - j_indices
+
+        # m_r[i, j] = C[n - i, j - i] * u^{j - i} * v^{n - j}, C[n - i, j - i] = C[n - i, n - j]
+        u_pow_r = u_tensor.pow(j_indices - i_indices)
+        v_pow_r = (1 - u_tensor).pow(rev_j)
+        binom_r = binom_coeffs[rev_i, rev_j]
+        m_r = torch.triu(binom_r * u_pow_r * v_pow_r)
+
+        l_cp = m_l @ self.control_point
+        r_cp = m_r @ self.control_point
+
+        return BezierCurve(l_cp), BezierCurve(r_cp)
 
     def elevate(self) -> "BezierCurve":
         """

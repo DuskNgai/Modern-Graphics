@@ -39,7 +39,7 @@
 $$
 p_{k}(t) = t^{k} \iff f(u_{1}, \dots, u_{n}) = \frac{\displaystyle{\sum_{1 \le i_1 < \dots < i_k \le n} u_{i_{1}} \cdots u_{i_{k}}}}{\displaystyle{\binom{n}{k}}}
 $$
-其中，分子是对参数 $\{u_{1}, \dots, u_{n}\}$ 中所有可能的 **k 元组合** 进行求和，是 k 次基本对称多项式。
+其中，分子是对参数 $\{u_{1}, \dots, u_{n}\}$ 中所有可能的 **$k$ 元组合** 进行求和，是 $k$ 次基本对称多项式。
 
 这个唯一形式是由“开花”的三个性质共同决定的：
 1. **对称性**与**多线性**要求函数的结构必须是基本对称多项式的线性组合。对于 $t^k$ 这种单项，其“开花”形式必然为 $c \cdot (\sum u_{i_{1}} \cdots u_{i_{k}})$，其中 $c$ 为常数。
@@ -90,13 +90,35 @@ $$
 
 开花理论最美妙的结论之一，就是它揭示了控制点的几何意义：**控制点 $\mathbf{P}_k$ 就是其开花函数在区间端点 0 和 1 上的求值结果。**
 $$
-\mathbf{P}_k = \mathbf{f}(\underbrace{0, \dots, 0}_{n-k}, \underbrace{1, \dots, 1}_{k})
+\mathbf{P}_k = \mathbf{f}(\underbrace{0, \dots, 0}_{n-k}, \underbrace{1, \dots, 1}_{k}; \{\mathbf{P}_{i}\}_{i = 0}^{n})
 $$
 
 ### Subdivision of a Bézier Curve
 
-将一条 Bézier 曲线 $\mathbf{C}$ 拆分为两条短的 Bézier 曲线 $\mathbf{C}_{1}$ 和 $\mathbf{C}_{2}$ 之后，曲线 $\mathbf{C}_{1}$ 和 $\mathbf{C}_{2}$ 的控制点由 $\mathbf{C}$ 的控制点和拆分点决定。具体来说，设在 $\mathbf{C}(u), u \in [0, 1]$ 处拆分，则 $\mathbf{C}_{1}$ 对应原区间 $[0, u]$； $\mathbf{C}_{2}$ 对应原区间 $[u, 1]$。它们各自的控制点可以直接通过原始曲线的开花函数 $\mathbf{f}$ 计算得出。
+将一条 Bézier 曲线 $\mathbf{C}$ 拆分为两条短的 Bézier 曲线 $\mathbf{C}_{1}$ 和 $\mathbf{C}_{2}$ 之后，曲线 $\mathbf{C}_{1}$ 和 $\mathbf{C}_{2}$ 的控制点由 $\mathbf{C}$ 的控制点和拆分点决定。具体来说，设在 $\mathbf{C}(u), u \in [0, 1]$ 处拆分，则 $\mathbf{C}_{1}$ 对应原区间 $[0, u]$； $\mathbf{C}_{2}$ 对应原区间 $[u, 1]$。它们各自的控制点可以直接通过原始曲线 $\mathbf{C}$ 的控制点的开花函数 $\mathbf{f}$ 计算得出。
 
 
 - 曲线 $\mathbf{C}_{1}$ 的控制点为 $\{\mathbf{Q}_{i} = \mathbf{f}(\underbrace{0, \dots, 0}_{n - i}, \underbrace{u, \dots, u}_{i}; \{\mathbf{P}_{j}\}_{j = 0}^{n})\}_{i = 0}^n$
 - 曲线 $\mathbf{C}_{2}$ 的控制点为 $\{\mathbf{R}_{i} = \mathbf{f}(\underbrace{u, \dots, u}_{n - i}, \underbrace{1, \dots, 1}_{i}; \{\mathbf{P}_{j}\}_{j = 0}^{n})\}_{i = 0}^n$
+
+仔细观察可得，曲线 $\mathbf{C}_{1}$ 和 $\mathbf{C}_{2}$ 的控制点在三角形图示中的上边界和下边界。
+
+## Blossom of Bézier Triangles
+
+设 $\mathbf{S}(u, v, w; \{\mathbf{P}_{ijk}\}_{i + j + k = n})$ 是 $n$ 次 Bézier 三角形。它的开花函数记为：
+$$
+\mathbf{f}(\mathbf{u}_{1}, \dots, \mathbf{u}_{n}; \{\mathbf{P}_{ijk}\}_{i + j + k = n})
+$$
+其中 $\mathbf{u}_{i}$ 是一个三元组。同理，控制点 $\mathbf{P}_{ijk}$ 为：
+$$
+\mathbf{f}(\underbrace{(1, 0, 0), \dots, (1, 0, 0)}_{i}, \underbrace{(0, 1, 0), \dots, (0, 1, 0)}_{j}, \underbrace{(0, 0, 1), \dots, (0, 0, 1)}_{k}; \{\mathbf{P}_{ijk}\}_{i + j + k = n})
+$$
+
+### Subdivision of a Bézier Triangle
+
+在 $u$ 所在的边上的参数 $r$ 拆分，在 $v$ 所在的边上的参数 $s$ 拆分在 $w$ 所在的边上的参数 $t$ 拆分，得到三个新的三角形。
+
+- $\mathbf{S}_{1, ijk} = \mathbf{f}(\underbrace{(1, 0, 0), \dots, (1, 0, 0)}_{i}, \underbrace{(1 - t, t, 0), \dots, (1 - t, t, 0)}_{j}, \underbrace{(s, 0, 1 - s), \dots, (s, 0, 1 - s)}_{k}; \{\mathbf{P}_{ijk}\}_{i + j + k = n})$
+- $\mathbf{S}_{2, ijk} = \mathbf{f}(\underbrace{(1 - t, t, 0), \dots, (1 - t, t, 0)}_{i}, \underbrace{(0, 1, 0), \dots, (0, 1, 0)}_{j}, \underbrace{(0, 1 - r, r), \dots, (0, 1 - r, r)}_{k}; \{\mathbf{P}_{ijk}\}_{i + j + k = n})$
+- $\mathbf{S}_{3, ijk} = \mathbf{f}(\underbrace{(s, 0, 1 - s), \dots, (s, 0, 1 - s)}_{i}, \underbrace{(0, 1 - r, r), \dots, (0, 1 - r, r)}_{j}, \underbrace{(0, 0, 1), \dots, (0, 0, 1)}_{k}; \{\mathbf{P}_{ijk}\}_{i + j + k = n})$
+- $\mathbf{S}_{4, ijk} = \mathbf{f}(\underbrace{(0, 1 - r, r), \dots, (0, 1 - r, r)}_{i}, \underbrace{(s, 0, 1 - s), \dots, (s, 0, 1 - s)}_{j}, \underbrace{(1 - t, t, 0), \dots, (1 - t, t, 0)}_{k}; \{\mathbf{P}_{ijk}\}_{i + j + k = n})$
