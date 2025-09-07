@@ -62,7 +62,7 @@ class BezierTriangleSurface(ParametricSurface):
     @lru_cache
     def get_coefficient(cls, n: int) -> torch.Tensor:
         """
-        n! / (i! * j! * k!)
+        n! / (i! * j! * k!), independent of ijk order
 
         Return:
             (`torch.Tensor`): Shape [n + 1, n + 1].
@@ -303,18 +303,18 @@ class BezierTriangleSurface(ParametricSurface):
             if k_p > 0:
                 args[i, i_p + j_p :] = v3_t
 
-        temp_cp = self.control_point.unsqueeze(0).expand(batch_size, -1, -1) # [batch_size, num_control_points, d]
+        cp = self.control_point.unsqueeze(0).expand(batch_size, -1, -1) # [batch_size, num_control_points, d]
 
         # De Casteljau's algorithm
         for r in range(n):
-            uvw_params = args[:, r, :]
-            u, v, w = uvw_params.unbind(-1) # [batch_size]
+            uvw = args[:, r, :] # [batch_size, 3]
 
-            indices_i, indices_j, indices_k = maps[r] # [num_output_points]
-            cp_i = temp_cp[:, indices_i, :]           # [batch_size, num_output_points, d]
-            cp_j = temp_cp[:, indices_j, :]           # [batch_size, num_output_points, d]
-            cp_k = temp_cp[:, indices_k, :]           # [batch_size, num_output_points, d]
+            indices_i, indices_j, indices_k = maps[r]                # [num_output_points]
+            cp_i = cp[:, indices_i, :]                               # [batch_size, num_output_points, d]
+            cp_j = cp[:, indices_j, :]                               # [batch_size, num_output_points, d]
+            cp_k = cp[:, indices_k, :]                               # [batch_size, num_output_points, d]
+            gathered_points = torch.stack([cp_i, cp_j, cp_k], dim=1) # [batch_size, 3, num_output_points, d]
 
-            temp_cp = (u.view(-1, 1, 1) * cp_i + v.view(-1, 1, 1) * cp_j + w.view(-1, 1, 1) * cp_k) # [batch_size, num_output_points, d]
+            cp = torch.einsum("bw, bwcd -> bcd", uvw, gathered_points) # [batch_size, num_output_points, d]
 
-        return temp_cp.squeeze(1) # [batch_size, 1, d] -> [batch_size, d]
+        return cp.squeeze(1) # [batch_size, 1, d] -> [batch_size, d]
