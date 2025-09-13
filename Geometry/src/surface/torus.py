@@ -25,20 +25,26 @@ class TorusSurface(ParametricSurface):
     @classmethod
     @lru_cache
     def get_regular_uv(cls, num_u_segments: int, num_v_segments: int) -> tuple[torch.Tensor, torch.Tensor]:
-        u, v = torch.meshgrid(
-            torch.linspace(0, 2 * torch.pi, num_u_segments + 1)[:-1],
-            torch.linspace(0, 2 * torch.pi, num_v_segments + 1)[:-1],
-            indexing="ij",
-        )
-        return u, v
+        return torch.stack(
+            torch.meshgrid(
+                torch.linspace(0, 2 * torch.pi, num_u_segments + 1)[:-1],
+                torch.linspace(0, 2 * torch.pi, num_v_segments + 1)[:-1],
+                indexing="xy",
+            ),
+            dim=-1,
+        ).reshape(-1, 2)                                                  # [V * U, 2]
 
     @lru_cache
     def get_regular_vertex(self, num_u_segments: int, num_v_segments: int) -> torch.Tensor:
-        u, v = self.get_regular_uv(num_u_segments, num_v_segments)
-        x = (self.major_radius_x + self.minor_radius_x * torch.cos(v)) * torch.cos(u)
-        y = (self.major_radius_y + self.minor_radius_x * torch.cos(v)) * torch.sin(u)
-        z = self.minor_radius_y * torch.sin(v)
-        return torch.stack([x, y, z], dim=-1).reshape(-1, 3)
+        u, v = self.get_regular_uv(num_u_segments, num_v_segments).unbind(-1)
+        return torch.stack(
+            [
+                (self.major_radius_x + self.minor_radius_x * torch.cos(v)) * torch.cos(u),
+                (self.major_radius_y + self.minor_radius_x * torch.cos(v)) * torch.sin(u),
+                self.minor_radius_y * torch.sin(v),
+            ],
+            dim=-1,
+        )
 
     @lru_cache
     def get_regular_face(self, num_u_segments: int, num_v_segments: int) -> torch.Tensor:
@@ -47,21 +53,21 @@ class TorusSurface(ParametricSurface):
         n_u = num_u_segments
         n_v = num_v_segments
 
-        for i in range(n_u):
-            for j in range(n_v):
-                idx0 = i * n_v + j
-                idx1 = i * n_v + (j + 1) % n_v
-                idx2 = ((i + 1) % n_u) * n_v + j
-                idx3 = ((i + 1) % n_u) * n_v + (j + 1) % n_v
+        for v in range(n_v):
+            for u in range(n_u):
+                idx0 = v * n_u + u
+                idx1 = v * n_u + (u + 1) % n_u
+                idx2 = ((v + 1) % n_v) * n_u + u
+                idx3 = ((v + 1) % n_v) * n_u + (u + 1) % n_u
 
-                faces.append([idx0, idx2, idx1])
-                faces.append([idx1, idx2, idx3])
+                faces.append([idx0, idx1, idx2])
+                faces.append([idx1, idx3, idx2])
 
         return torch.tensor(faces, dtype=torch.long)
 
     @lru_cache
     def get_regular_normal(self, num_u_segments: int, num_v_segments: int) -> torch.Tensor:
-        u, v = self.get_regular_uv(num_u_segments, num_v_segments)
+        u, v = self.get_regular_uv(num_u_segments, num_v_segments).unbind(-1)
         a, b = self.major_radius_x, self.major_radius_y
         c, d = self.minor_radius_x, self.minor_radius_y
 

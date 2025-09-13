@@ -9,8 +9,9 @@ import seaborn as sns
 
 sys.path.append(Path(__file__).resolve().parents[3].as_posix())
 
-from src.surface.sphere import SphereSurface
 from utils import export_to_obj
+
+from src.surface.sphere import SphereSurface
 
 sns.set_style(style="whitegrid")
 COLORS = {
@@ -23,10 +24,9 @@ def visualize_sphere(surface: SphereSurface, num_u_segments: int = 24, num_v_seg
     vertices_np = vertices.numpy()
     faces_np = faces.numpy()
     normals_np = normals.numpy()
-    u, v = surface.get_regular_uv(num_u_segments, num_v_segments)
-    u = (u - u.min()) / (u.max() - u.min())
-    v = (v - v.min()) / (v.max() - v.min())
-    uvs_np = np.stack([u.numpy(), v.numpy()], axis=-1).reshape(-1, 2)
+    uvs = surface.get_regular_uv(num_u_segments, num_v_segments)
+    uvs = (uvs - uvs.amin(0)) / (uvs.amax(0) - uvs.amin(0))
+    uvs_np = uvs.numpy()
 
     fig = plt.figure(figsize=figsize)
     ax = fig.add_subplot(111, projection="3d")
@@ -67,4 +67,4 @@ if __name__ == "__main__":
     num_u_segments, num_v_segments = 32, 16
     sphere = SphereSurface(radius=1.0)
     visualize_sphere(sphere, num_u_segments, num_v_segments)
-    export_to_obj("sphere.obj", sphere, num_u_segments, num_v_segments)
+    # export_to_obj("sphere.obj", sphere, num_u_segments, num_v_segments)
